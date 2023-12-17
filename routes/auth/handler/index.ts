@@ -11,13 +11,14 @@ export const registerValidationHandler = (
     password: Joi.string().min(6).max(30).required(),
     email: Joi.string().email().required(),
     phoneNumber: Joi.string().min(11).max(11).required(),
+    profileImage: Joi.string().optional(),
   });
 
   const validationResult = schema.validate(req.body);
 
   if (validationResult.error) {
-    const errors = validationResult.error.details.map((err) => err.message);
-    return res.status(400).send({ errors });
+    const error = validationResult.error.message;
+    return res.status(400).send({ message: error });
   }
 
   next();
@@ -36,8 +37,8 @@ export const loginValidationHandler = (
   const validationResult = schema.validate(req.body);
 
   if (validationResult.error) {
-    const errors = validationResult.error.details.map((err) => err.message);
-    return res.status(400).send({ errors });
+    const error = validationResult.error.message;
+    return res.status(400).send({ message: error });
   }
 
   next();
@@ -56,8 +57,8 @@ export const getUsersValidationHandler = (
   const validationResult = schema.validate(req.query);
 
   if (validationResult.error) {
-    const errors = validationResult.error.details.map((err) => err.message);
-    return res.status(400).send({ errors });
+    const error = validationResult.error.message;
+    return res.status(400).send({ message: error });
   }
 
   next();

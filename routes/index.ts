@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import authRoute from "./auth/router";
-import { getUsersValidationHandler } from "./auth/handler";
+import conversationRoute from "./conversation/router";
 import UserController from "../controllers/user.controller";
 const router = express.Router();
 
@@ -20,18 +20,6 @@ router.use("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.get(
-  "/get-users",
-  getUsersValidationHandler,
-  async (req: Request, res: Response) => {
-    const controller = new UserController();
-    try {
-      const users = await controller.getUsers(req);
-      res.status(200).send({ users });
-    } catch (error: any) {
-      res.status(400).send({ message: error.message });
-    }
-  }
-);
+router.use(conversationRoute);
 
 export default router;

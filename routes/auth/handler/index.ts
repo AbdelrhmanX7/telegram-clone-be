@@ -43,23 +43,3 @@ export const loginValidationHandler = (
 
   next();
 };
-
-export const getUsersValidationHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const schema = Joi.object({
-    page: Joi.string().required(),
-    search: Joi.string().required(),
-  });
-
-  const validationResult = schema.validate(req.query);
-
-  if (validationResult.error) {
-    const error = validationResult.error.message;
-    return res.status(400).send({ message: error });
-  }
-
-  next();
-};

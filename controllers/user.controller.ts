@@ -77,7 +77,8 @@ class UserController {
   }
 
   async getUsers(req: Request) {
-    const { page, search } = req.query;
+    const { search } = req.query;
+    if (!search?.length) return [];
     const pageSize = 10;
     const users = await Users.aggregate([
       {
@@ -89,7 +90,6 @@ class UserController {
           ],
         },
       },
-      { $skip: (Number(page) - 1) * pageSize },
       { $limit: pageSize },
     ]);
 

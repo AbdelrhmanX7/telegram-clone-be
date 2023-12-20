@@ -11,7 +11,7 @@ export const registerValidationHandler = (
     password: Joi.string().min(6).max(30).required(),
     email: Joi.string().email().required(),
     phoneNumber: Joi.string().min(11).max(11).required(),
-    profileImage: Joi.string().optional(),
+    profileImage: Joi.string().empty().allow("").optional(),
   });
 
   const validationResult = schema.validate(req.body);

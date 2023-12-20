@@ -8,7 +8,7 @@ export const getConversationValidationHandler = (
 ) => {
   const schema = Joi.object({
     page: Joi.string().required(),
-    conversationId: Joi.string().required(),
+    userIds: Joi.string().required(),
   });
 
   const validateResult = schema.validate(req.query);

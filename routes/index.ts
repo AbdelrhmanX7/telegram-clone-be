@@ -2,7 +2,6 @@ import express, { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import authRoute from "./auth/router";
 import conversationRoute from "./conversation/router";
-import UserController from "../controllers/user.controller";
 const router = express.Router();
 
 router.use(authRoute);

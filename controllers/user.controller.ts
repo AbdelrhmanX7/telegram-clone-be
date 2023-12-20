@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Users from "../models/users";
+import { Types } from "mongoose";
 class UserController {
   #SECRET_KEY;
   constructor() {
@@ -78,6 +79,8 @@ class UserController {
 
   async getUsers(req: Request) {
     const { search } = req.query;
+    const token = req?.headers?.authorization ?? "";
+    const { userId }: any = jwt.decode(token);
     if (!search?.length) return [];
     const pageSize = 10;
     const users = await Users.aggregate([
@@ -92,8 +95,10 @@ class UserController {
       },
       { $limit: pageSize },
     ]);
-
-    return users;
+    const filteredUsers = users.filter(
+      (user) => user._id.toString() !== userId
+    );
+    return filteredUsers;
   }
 }
 

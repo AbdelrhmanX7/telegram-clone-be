@@ -3,6 +3,10 @@ import { Connect } from "./config";
 import dotenv from "dotenv";
 import router from "./routes";
 import cors from "cors";
+import { Server } from "socket.io";
+import { createServer } from "http";
+import messages from "./models/messages";
+import Conversations from "./models/conversations";
 // import multer from "multer";
 // import stream from "stream";
 // import { google } from "googleapis";
@@ -21,6 +25,13 @@ Connect();
 // });
 
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -62,6 +73,50 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(router);
 
-app.listen(process.env.PORT, () =>
-  console.log(`Server running on port ==> ${process.env.PORT}`)
+io.on("connection", (socket) => {
+  console.log("a user connected");
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+  socket.on("init", (id) => {
+    if (id?.length) {
+      socket.join(id);
+      socket.on("message", async (data) => {
+        const convertData = JSON.parse(data);
+        console.log("convertData", convertData);
+        console.log("senderId", convertData?.senderId);
+        console.log("id", id);
+        if (
+          !convertData?.message?.length ||
+          !convertData?.senderId?.length ||
+          !convertData?.receiverId?.length
+        ) {
+          io.emit("message", "error");
+        } else {
+          const { message, senderId, receiverId } = convertData;
+          let conversationId = convertData?.conversationId;
+          console.log(conversationId);
+          if (!conversationId?.length) {
+            const conv: any = await Conversations.create({
+              userIds: [senderId, receiverId],
+            });
+            conversationId = conv._id;
+          }
+          await messages.create({
+            message,
+            senderId,
+            receiverId,
+            conversationId,
+          });
+          io.to(senderId).emit("message", message);
+          io.to(receiverId).emit("message", message);
+          console.log("Done");
+        }
+      });
+    }
+  });
+});
+
+server.listen(process.env.PORT, () =>
+  console.log(`Server running at ==> http://localhost:${process.env.PORT}`)
 );

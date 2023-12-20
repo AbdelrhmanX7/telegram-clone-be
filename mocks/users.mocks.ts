@@ -17,7 +17,6 @@ async function MockUpUsers() {
     count: 100,
   });
 
-  console.log(USERS);
   await Users.insertMany(USERS);
   console.log("Done");
 }

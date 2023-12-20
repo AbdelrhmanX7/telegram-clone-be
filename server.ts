@@ -83,9 +83,6 @@ io.on("connection", (socket) => {
       socket.join(id);
       socket.on("message", async (data) => {
         const convertData = JSON.parse(data);
-        console.log("convertData", convertData);
-        console.log("senderId", convertData?.senderId);
-        console.log("id", id);
         if (
           !convertData?.message?.length ||
           !convertData?.senderId?.length ||
@@ -95,7 +92,6 @@ io.on("connection", (socket) => {
         } else {
           const { message, senderId, receiverId } = convertData;
           let conversationId = convertData?.conversationId;
-          console.log(conversationId);
           if (!conversationId?.length) {
             const conv: any = await Conversations.create({
               userIds: [senderId, receiverId],
@@ -110,7 +106,6 @@ io.on("connection", (socket) => {
           });
           io.to(senderId).emit("message", message);
           io.to(receiverId).emit("message", message);
-          console.log("Done");
         }
       });
     }

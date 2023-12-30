@@ -1,17 +1,15 @@
 import mongoose, { Schema } from "mongoose";
 
 const MessageSchema = new Schema({
-  conversationId: { type: Schema.Types.ObjectId, ref: "Conversation" },
-  userId: { type: Schema.Types.ObjectId, ref: "user" },
-  userIds: { type: [Schema.Types.ObjectId], ref: "user" },
+  conversationId: { type: Schema.Types.ObjectId, ref: "conversation" },
   timestamp: { type: Date, default: Date.now },
-  isSentByYou: { type: Boolean, default: false },
-  senderId: { type: Schema.Types.ObjectId, ref: "" },
-  receiverId: { type: Schema.Types.ObjectId, ref: "" },
+  senderId: { type: Schema.Types.ObjectId, ref: "users" },
+  receiverId: { type: Schema.Types.ObjectId, ref: "users" },
   message: {
     type: String,
     required: [true, `Can't send an empty message`],
   },
+  messageState: String,
 });
 
 export default mongoose.model("messages", MessageSchema);

@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import authRoute from "./auth/router";
 import conversationRoute from "./conversation/router";
+import { extractUserIdFromToken } from "../middlewares";
 const router = express.Router();
 
 router.use(authRoute);
@@ -18,6 +19,8 @@ router.use("/", async (req: Request, res: Response, next: NextFunction) => {
     res.status(401).send({ message: "Unauthorized" });
   }
 });
+
+router.use(extractUserIdFromToken);
 
 router.use(conversationRoute);
 

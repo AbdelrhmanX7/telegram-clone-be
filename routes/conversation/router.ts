@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, Router } from "express";
 import Conversations from "../../models/conversations";
 import { Types } from "mongoose";
 import Messages from "../../models/messages";
@@ -6,14 +6,11 @@ import { getConversationValidationHandler } from "./handler";
 import UserController from "../../controllers/user.controller";
 import jwt from "jsonwebtoken";
 import Users from "../../models/users";
-
 const router = express.Router();
 
 router.get("/conversations", async (req: Request, res: Response) => {
   try {
-    const token = req.headers.authorization;
-    const { userId: _id }: any = jwt.decode(token ?? "") ?? "";
-    const userId = new Types.ObjectId(_id);
+    const userId = new Types.ObjectId(req?.userId ?? "");
     const getAllConversations = await Conversations.aggregate([
       { $match: { userIds: userId } },
       {

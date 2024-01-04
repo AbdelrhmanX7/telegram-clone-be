@@ -157,6 +157,7 @@ io.on("connection", (socket) => {
       await messages.updateMany(
         {
           conversationId: { $in: convIds },
+          receiverId: id,
           messageState: "sent",
         },
         { messageState: "received" }
@@ -174,15 +175,32 @@ io.on("connection", (socket) => {
         }
       });
 
+      socket.on(
+        "message:seen",
+        async ({ conversationId, senderId, receiverId }) => {
+          await messages.updateMany(
+            {
+              conversationId: { $in: conversationId },
+              receiverId: senderId,
+              senderId: receiverId,
+              $or: [{ messageState: "sent" }, { messageState: "received" }],
+            },
+            { messageState: "seen" }
+          );
+          io.to(senderId).emit("seen:message");
+          io.to(receiverId).emit("seen:message");
+        }
+      );
+
       socket.on("message:received", async (messageForm, isSeen = false) => {
-        // console.log("Pong");
         messageForm.messageState = isSeen ? "seen" : "received";
         const { senderId, receiverId } = messageForm;
-        // console.log(messageForm);
-        io.to(senderId).emit("message", messageForm);
-        io.to(receiverId).emit("message", messageForm);
-        const msg = await messages.create(messageForm);
-        // console.log(msg);
+        io.to(senderId).emit("direct:message", messageForm);
+        io.to(receiverId).emit(
+          isSeen ? "direct:message" : "incoming:message",
+          messageForm
+        );
+        await messages.create(messageForm);
       });
 
       socket.on("message", async (msg) => {
@@ -216,18 +234,18 @@ io.on("connection", (socket) => {
             timestamp: new Date(),
             messageState,
           };
-          socket
-            .to(receiverId)
-            .emit("receive:message", messageForm, (...arg: any) => {
-              // if (!respone?.length) {
-              //   messageForm.messageState = "sent";
-              //   const { senderId, receiverId } = messageForm;
-              //   console.log(messageForm);
-              //   io.to(senderId).emit("message", messageForm);
-              //   io.to(receiverId).emit("message", messageForm);
-              //   await messages.create(messageForm);
-              // }
-            });
+          try {
+            const respone = await socket
+              .timeout(5000)
+              .to(receiverId)
+              .emitWithAck("receive:message", messageForm);
+            if (!respone[0]?.status) {
+              messageForm.messageState = "sent";
+              const { senderId } = messageForm;
+              io.to(senderId).emit("direct:message", messageForm);
+              await messages.create(messageForm);
+            }
+          } catch (error) {}
         }
       });
     }

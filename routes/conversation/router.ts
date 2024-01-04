@@ -50,9 +50,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const query: any = req.query;
-      const user: any = await Users.findById(
-        new Types.ObjectId(query?.userIds)
-      );
+      const user: any = await Users.findById(new Types.ObjectId(query?.userId));
       const pageSize = 100;
       const token = req?.headers?.authorization ?? "";
       const { userId }: any = jwt.decode(token ?? "");

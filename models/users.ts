@@ -19,7 +19,7 @@ const UserSchema = new Schema({
     require: [true, "you must add a password"],
   },
   isActive: Boolean,
-  lastSeenAt: Date,
+  lastSeenAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model(

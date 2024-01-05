@@ -32,11 +32,57 @@ router.get("/conversations", async (req: Request, res: Response) => {
           },
         },
       },
+      {
+        $project: {
+          users: {
+            password: 0,
+          },
+        },
+      },
     ]);
-    const dataFormater = getAllConversations.map((item) => ({
-      ...item.users[0],
-      conversationId: item._id,
-    }));
+    const conversationIds = getAllConversations.map(
+      (item) => new Types.ObjectId(item._id)
+    );
+    const getLastMessage = await Messages.aggregate([
+      {
+        $match: {
+          conversationId: { $in: conversationIds },
+        },
+      },
+      {
+        $sort: {
+          conversationId: 1,
+          timestamp: -1,
+        },
+      },
+      {
+        $group: {
+          _id: "$conversationId",
+          latestMessage: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$latestMessage" },
+      },
+      {
+        $project: {
+          _id: 0,
+          senderId: 0,
+          reveiverId: 0,
+        },
+      },
+    ]);
+    const dataFormater = getAllConversations.map((item) => {
+      const messageInfo = getLastMessage?.find(
+        (msg) => msg?.conversationId?.toString() === item?._id?.toString()
+      );
+
+      return {
+        ...item.users[0],
+        ...messageInfo,
+        conversationId: item._id,
+      };
+    });
 
     res.status(200).send(dataFormater);
   } catch (error: any) {

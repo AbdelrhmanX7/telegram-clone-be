@@ -110,8 +110,11 @@ io.on("connection", (socket) => {
         },
       },
     ]);
-    getAllConversations.forEach((item) => {
-      io.to(item.users[0]._id.toString()).emit("user_disconnect");
+    getAllConversations.forEach((conversation) => {
+      io.to(conversation.users[0]._id.toString()).emit(
+        "user_disconnect",
+        conversation._id
+      );
     });
   });
   socket.on("init", async (id) => {
@@ -146,8 +149,11 @@ io.on("connection", (socket) => {
         },
       ]);
 
-      getAllConversations.forEach((item) => {
-        io.to(item.users[0]._id.toString()).emit("user_connect");
+      getAllConversations.forEach((conversation) => {
+        io.to(conversation.users[0]._id.toString()).emit(
+          "user_connect",
+          conversation._id
+        );
       });
 
       const conv: any = await Conversations.find({
@@ -167,10 +173,11 @@ io.on("connection", (socket) => {
         if (!data?.conversationId || !data?.receiverId || !data?.senderId) {
           io.emit("err");
         } else {
-          const { senderId, receiverId, isTyping } = data;
+          const { senderId, receiverId, isTyping, conversationId } = data;
           io.to(receiverId).emit("typing", {
             senderId,
             isTyping,
+            conversationId,
           });
         }
       });
